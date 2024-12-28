@@ -1,13 +1,7 @@
-// Client ID and API key from the Developer Console
-const CLIENT_ID = 419971965316;
+const CLIENT_ID = '419971965316-34vqaqd2q4be4r9rb5a8nk2cpenmet0f.apps.googleusercontent.com';
 const API_KEY = 'AIzaSyCCPZ6-0rxy8cHo8j631qGcf641qixq9PI';
-
-// Array of API discovery doc URLs for APIs used by the app
 const DISCOVERY_DOCS = ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"];
-
-// Authorization scopes required by the API; multiple scopes can be
-// included, separated by spaces.
-const SCOPES = "https://www.googleapis.com/auth/drive.file";
+const SCOPES = "https://www.googleapis.com/auth/drive";
 
 const authorizeButton = document.getElementById('authorizeButton');
 const signOutButton = document.getElementById('signOutButton');
@@ -15,12 +9,10 @@ const captureButton = document.getElementById('captureButton');
 const photoInput = document.getElementById('photoInput');
 const photoGallery = document.getElementById('photoGallery');
 
-// Load the API and make an API call
 function handleClientLoad() {
     gapi.load('client:auth2', initClient);
 }
 
-// Initialize the API client library and set up sign-in state listeners
 function initClient() {
     gapi.client.init({
         apiKey: API_KEY,
@@ -32,15 +24,11 @@ function initClient() {
         authorizeButton.onclick = () => GoogleAuth.signIn();
         signOutButton.onclick = () => GoogleAuth.signOut();
 
-        // Listen for sign-in state changes
         GoogleAuth.isSignedIn.listen(updateSigninStatus);
         updateSigninStatus(GoogleAuth.isSignedIn.get());
-    }, (error) => {
-        console.error(JSON.stringify(error, null, 2));
-    });
+    }, error => console.error(JSON.stringify(error, null, 2)));
 }
 
-// Update UI based on user's sign-in status
 function updateSigninStatus(isSignedIn) {
     if (isSignedIn) {
         authorizeButton.style.display = 'none';
@@ -54,15 +42,14 @@ function updateSigninStatus(isSignedIn) {
     }
 }
 
-// Load photos from Google Drive
 function loadDrivePhotos() {
     gapi.client.drive.files.list({
         'pageSize': 10,
         'fields': "nextPageToken, files(id, name, webViewLink, thumbnailLink)"
     }).then(response => {
-        const files = response.result.files;
+        const files = response.result.files.filter(file => file.thumbnailLink);
         photoGallery.innerHTML = '';
-        if (files && files.length > 0) {
+        if (files.length > 0) {
             files.forEach(file => {
                 const img = document.createElement('img');
                 img.src = file.thumbnailLink;
@@ -76,7 +63,6 @@ function loadDrivePhotos() {
     });
 }
 
-// Upload a photo to Google Drive
 captureButton.addEventListener('click', () => {
     photoInput.click();
 });
@@ -86,6 +72,7 @@ photoInput.addEventListener('change', (event) => {
     if (file) {
         const reader = new FileReader();
         reader.onload = () => {
+            const token = gapi.auth2.getAuthInstance().currentUser.get().getAuthResponse().access_token;
             const fileData = new Blob([reader.result], { type: file.type });
             const metadata = {
                 'name': file.name,
@@ -97,7 +84,7 @@ photoInput.addEventListener('change', (event) => {
 
             fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
                 method: 'POST',
-                headers: new Headers({ 'Authorization': 'Bearer ' + gapi.auth.getToken().access_token }),
+                headers: new Headers({ 'Authorization': 'Bearer ' + token }),
                 body: formData
             }).then(response => response.json()).then(() => {
                 loadDrivePhotos();
@@ -107,5 +94,4 @@ photoInput.addEventListener('change', (event) => {
     }
 });
 
-// Load the Google API client library
 handleClientLoad();
