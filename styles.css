@@ -1,90 +1,41 @@
-/* General Styles */
 body {
-    margin: 0;
     font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
-    color: #333;
-    text-align: center;
+    background-color: #f4f4f9;
+    margin: 0;
+    padding: 0;
 }
 
 header {
-    background-color: #007BFF;
+    background-color: #007bff;
     color: white;
-    padding: 20px 0;
-}
-
-h1 {
-    margin: 0;
-    font-size: 2rem;
-}
-
-.container {
-    padding: 20px;
-    max-width: 800px;
-    margin: 0 auto;
-}
-
-/* Upload Section */
-.upload-section {
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    margin-bottom: 20px;
+    text-align: center;
+    padding: 1rem;
 }
 
 button {
-    background-color: #007BFF;
-    color: white;
+    margin: 1rem;
+    padding: 0.5rem 1rem;
     border: none;
-    padding: 10px 20px;
-    font-size: 16px;
-    border-radius: 5px;
+    background-color: #007bff;
+    color: white;
     cursor: pointer;
+    border-radius: 4px;
 }
 
 button:hover {
     background-color: #0056b3;
 }
 
-/* Gallery Section */
-.gallery-section {
+.card {
     background: white;
-    padding: 20px;
-    border-radius: 10px;
+    padding: 1rem;
+    margin: 1rem;
+    border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.gallery {
+#output {
     display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    justify-content: center;
-}
-
-.gallery img {
-    width: 150px;
-    height: 150px;
-    object-fit: cover;
-    border-radius: 5px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.container {
-    max-width: 800px;
-    margin: 0 auto;
-    text-align: center;
-}
-.auth-section, .upload-section, .gallery-section {
-    margin: 20px 0;
-}
-button {
-    padding: 10px 20px;
-    font-size: 16px;
-    cursor: pointer;
-}
-.gallery img {
-    max-width: 100px;
-    margin: 5px;
-    cursor: pointer;
+    flex-direction: column;
+    align-items: center;
 }
