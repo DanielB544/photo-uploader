@@ -1,3 +1,4 @@
+// Variables globales
 let tokenClient;
 let gapiInited = false;
 let gisInited = false;
@@ -9,92 +10,69 @@ const authorizeButton = document.getElementById('authorizeButton');
 const signOutButton = document.getElementById('signOutButton');
 const captureButton = document.getElementById('captureButton');
 
-function gapiLoaded() {
-    gapi.load('client', initializeGapiClient);
-}
+// Hacer las funciones accesibles globalmente
+window.gapiLoaded = function () {
+  console.log("Cargando GAPI...");
+  gapi.load('client', initializeGapiClient);
+};
+
+window.gisLoaded = function () {
+  console.log("Cargando GIS...");
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: CLIENT_ID,
+    scope: SCOPES,
+    callback: '', // Esto se configura dinámicamente
+  });
+  gisInited = true;
+  maybeEnableButtons();
+};
 
 async function initializeGapiClient() {
-    try {
-        await gapi.client.init({
-            apiKey: 'TU_API_KEY',
-            discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
-        });
-        gapiInited = true;
-        maybeEnableButtons();
-    } catch (error) {
-        console.error('Error inicializando el cliente gapi:', error);
-    }
-}
-
-function gisLoaded() {
-    try {
-        tokenClient = google.accounts.oauth2.initTokenClient({
-            client_id: CLIENT_ID,
-            scope: SCOPES,
-            callback: '', // Esto se configura dinámicamente
-        });
-        gisInited = true;
-        maybeEnableButtons();
-    } catch (error) {
-        console.error('Error inicializando tokenClient:', error);
-    }
+  try {
+    await gapi.client.init({
+      apiKey: 'TU_API_KEY',
+      discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
+    });
+    console.log("GAPI inicializado.");
+    gapiInited = true;
+    maybeEnableButtons();
+  } catch (error) {
+    console.error('Error inicializando GAPI:', error);
+  }
 }
 
 function maybeEnableButtons() {
-    if (gapiInited && gisInited) {
-        authorizeButton.style.display = 'block';
-    }
+  console.log("Estado de inicialización:", { gapiInited, gisInited });
+  if (gapiInited && gisInited) {
+    authorizeButton.style.display = 'block';
+  }
 }
 
+// Event listeners para los botones
 authorizeButton.onclick = () => {
-    if (!tokenClient) {
-        console.error('Token Client no inicializado.');
-        return;
+  if (!tokenClient) {
+    console.error('Token Client no inicializado.');
+    return;
+  }
+
+  tokenClient.callback = async (resp) => {
+    if (resp.error) {
+      console.error('Error de autenticación:', resp.error);
+      return;
     }
 
-    tokenClient.callback = async (resp) => {
-        if (resp.error) {
-            console.error('Error de autenticación:', resp.error);
-            return;
-        }
+    authorizeButton.style.display = 'none';
+    signOutButton.style.display = 'block';
+    captureButton.style.display = 'block';
+    console.log("Autenticado correctamente.");
+  };
 
-        authorizeButton.style.display = 'none';
-        signOutButton.style.display = 'block';
-        captureButton.style.display = 'block';
-        listFiles();
-    };
-
-    tokenClient.requestAccessToken({ prompt: 'consent' });
+  tokenClient.requestAccessToken({ prompt: 'consent' });
 };
 
 signOutButton.onclick = () => {
-    signOutButton.style.display = 'none';
-    captureButton.style.display = 'none';
-    authorizeButton.style.display = 'block';
+  console.log("Cerrando sesión...");
+  signOutButton.style.display = 'none';
+  captureButton.style.display = 'none';
+  authorizeButton.style.display = 'block';
 };
-
-async function listFiles() {
-    try {
-        const response = await gapi.client.drive.files.list({
-            pageSize: 10,
-            fields: 'files(id, name)',
-        });
-        const files = response.result.files;
-
-        const filesList = document.getElementById('files');
-        filesList.innerHTML = '';
-
-        if (!files || files.length === 0) {
-            document.getElementById('message').textContent = 'No se encontraron fotos.';
-            return;
-        }
-
-        files.forEach((file) => {
-            const li = document.createElement('li');
-            li.textContent = file.name;
-            filesList.appendChild(li);
-        });
-    } catch (error) {
-        console.error('Error obteniendo archivos de Drive:', error);
-    }
-}
