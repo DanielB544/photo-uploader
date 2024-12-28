@@ -162,5 +162,26 @@ document.getElementById("cameraButton").addEventListener("click", async () => {
     });
 
     cameraInput.click();
+function loadDrivePhotos() {
+    gapi.client.drive.files.list({
+        'pageSize': 10,
+        'fields': "nextPageToken, files(id, name, webViewLink, thumbnailLink)"
+    }).then(response => {
+        const files = response.result.files.filter(file => file.name.endsWith(".jpg"));
+        photoGallery.innerHTML = '';
+        if (files.length > 0) {
+            files.forEach(file => {
+                const img = document.createElement('img');
+                img.src = file.thumbnailLink;
+                img.alt = file.name;
+                img.onclick = () => window.open(file.webViewLink, '_blank');
+                photoGallery.appendChild(img);
+            });
+        } else {
+            photoGallery.innerHTML = '<p>No se encontraron fotos .jpg.</p>';
+        }
+    }).catch(error => console.error('Error cargando fotos:', error));
+}
+
 });
 
