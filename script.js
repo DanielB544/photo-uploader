@@ -18,7 +18,10 @@ function initClient() {
         apiKey: API_KEY,
         clientId: CLIENT_ID,
         discoveryDocs: DISCOVERY_DOCS,
-        scope: SCOPES
+        scope: SCOPES,
+        hosted_domain: 'album-bodadyb.netlify.app'
+});
+
     }).then(() => {
         const GoogleAuth = gapi.auth2.getAuthInstance();
         authorizeButton.onclick = () => GoogleAuth.signIn();
