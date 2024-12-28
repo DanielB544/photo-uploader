@@ -69,3 +69,22 @@ button:hover {
     border-radius: 5px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    text-align: center;
+}
+.auth-section, .upload-section, .gallery-section {
+    margin: 20px 0;
+}
+button {
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+}
+.gallery img {
+    max-width: 100px;
+    margin: 5px;
+    cursor: pointer;
+}
