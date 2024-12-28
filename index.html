@@ -1,30 +1,36 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Album Boda 25 años Daniel & Bertha</title>
+    <title>Álbum Boda 25 Años - Daniel & Bertha</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <header>
-        <h1>Album Boda 25 años Daniel & Bertha</h1>
+        <h1>Álbum Boda 25 Años - Daniel & Bertha</h1>
     </header>
     <main class="container">
+        <!-- Sección de Autorización -->
         <section class="auth-section">
-            <button id="authorizeButton">PERMISO</button>
-            <button id="signOutButton" style="display: none;">Sign Out</button>
+            <button id="authorizeButton" aria-label="Autorizar acceso a Google Drive">PERMISO</button>
+            <button id="signOutButton" style="display: none;" aria-label="Cerrar sesión en Google Drive">Cerrar Sesión</button>
         </section>
+        <!-- Sección de Captura y Subida -->
         <section class="upload-section">
-            <p>Click the button below to capture a photo and upload it:</p>
+            <p>Haz clic en el botón de abajo para capturar una foto y subirla:</p>
             <button id="captureButton" style="display: none;">Capturar</button>
             <input type="file" accept="image/*" capture="environment" id="photoInput" style="display: none;">
         </section>
+        <!-- Sección de Galería -->
         <section class="gallery-section">
             <h2>RECUERDOS</h2>
-            <div id="photoGallery" class="gallery"></div>
+            <div id="photoGallery" class="gallery">
+                <p>No hay fotos cargadas aún. Inicia sesión para ver tus recuerdos.</p>
+            </div>
         </section>
     </main>
+    <!-- Scripts -->
     <script src="https://apis.google.com/js/api.js"></script>
     <script src="script.js"></script>
 </body>
