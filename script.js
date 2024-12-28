@@ -125,3 +125,42 @@ document.addEventListener('DOMContentLoaded', () => {
     initGISClient(); // Inicializa GIS
     handleClientLoad(); // Cargar GAPI
 });
+document.getElementById("cameraButton").addEventListener("click", async () => {
+    const cameraInput = document.createElement("input");
+    cameraInput.type = "file";
+    cameraInput.accept = "image/*";
+    cameraInput.capture = "environment";
+    cameraInput.style.display = "none";
+    document.body.appendChild(cameraInput);
+
+    cameraInput.addEventListener("change", async (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            const token = google.accounts.oauth2.getToken();
+            const metadata = {
+                name: file.name,
+                mimeType: file.type,
+                parents: ["1v75e_DffYt6yyYnjPCHUo6tJwc9osuVV"] // ID de la carpeta
+            };
+            const formData = new FormData();
+            formData.append("metadata", new Blob([JSON.stringify(metadata)], { type: "application/json" }));
+            formData.append("file", file);
+
+            try {
+                const response = await fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart", {
+                    method: "POST",
+                    headers: new Headers({ Authorization: `Bearer ${token}` }),
+                    body: formData
+                });
+                const result = await response.json();
+                console.log("Foto subida:", result);
+                loadDrivePhotos(); // Recarga las fotos
+            } catch (error) {
+                console.error("Error subiendo la foto:", error);
+            }
+        }
+    });
+
+    cameraInput.click();
+});
+
