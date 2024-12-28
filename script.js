@@ -9,40 +9,62 @@ const captureButton = document.getElementById('captureButton');
 const photoInput = document.getElementById('photoInput');
 const photoGallery = document.getElementById('photoGallery');
 
+let tokenClient; // Token Client para Google Identity Services
+let gapiInited = false; // Control de inicialización de gapi
+let gisInited = false; // Control de inicialización de GIS
+
+/**
+ * Cargar la librería de gapi y inicializar
+ */
 function handleClientLoad() {
-    gapi.load('client:auth2', initClient);
+    gapi.load('client', initGapiClient);
 }
 
-function initClient() {
+/**
+ * Inicializa el cliente de GAPI
+ */
+function initGapiClient() {
     gapi.client.init({
         apiKey: API_KEY,
-        clientId: CLIENT_ID,
         discoveryDocs: DISCOVERY_DOCS,
-        scope: SCOPES,
-        hosted_domain: 'album-bodadyb.netlify.app'
     }).then(() => {
-        const GoogleAuth = gapi.auth2.getAuthInstance();
-        authorizeButton.onclick = () => GoogleAuth.signIn();
-        signOutButton.onclick = () => GoogleAuth.signOut();
-
-        GoogleAuth.isSignedIn.listen(updateSigninStatus);
-        updateSigninStatus(GoogleAuth.isSignedIn.get());
-    }, error => console.error(JSON.stringify(error, null, 2)));
+        gapiInited = true;
+        enableAuthorizeButton();
+    }).catch(error => console.error('Error initializing GAPI client:', error));
 }
 
-function updateSigninStatus(isSignedIn) {
-    if (isSignedIn) {
-        authorizeButton.style.display = 'none';
-        signOutButton.style.display = 'block';
-        captureButton.style.display = 'block';
-        loadDrivePhotos();
-    } else {
+/**
+ * Inicializa Google Identity Services (GIS)
+ */
+function initGISClient() {
+    tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: CLIENT_ID,
+        scope: SCOPES,
+        callback: (response) => {
+            if (response.error) {
+                console.error('Error during token request:', response.error);
+                return;
+            }
+            loadDrivePhotos(); // Cargar fotos al obtener el token
+        },
+    });
+    gisInited = true;
+    enableAuthorizeButton();
+}
+
+/**
+ * Habilita el botón de autorización si GIS y GAPI están inicializados
+ */
+function enableAuthorizeButton() {
+    if (gapiInited && gisInited) {
         authorizeButton.style.display = 'block';
-        signOutButton.style.display = 'none';
-        captureButton.style.display = 'none';
+        authorizeButton.onclick = () => tokenClient.requestAccessToken();
     }
 }
 
+/**
+ * Cargar las fotos de Google Drive
+ */
 function loadDrivePhotos() {
     gapi.client.drive.files.list({
         'pageSize': 10,
@@ -61,9 +83,12 @@ function loadDrivePhotos() {
         } else {
             photoGallery.innerHTML = '<p>No photos found.</p>';
         }
-    });
+    }).catch(error => console.error('Error loading photos:', error));
 }
 
+/**
+ * Manejar captura de fotos y subirlas a Google Drive
+ */
 captureButton.addEventListener('click', () => {
     photoInput.click();
 });
@@ -73,15 +98,15 @@ photoInput.addEventListener('change', (event) => {
     if (file) {
         const reader = new FileReader();
         reader.onload = () => {
-            const token = gapi.auth2.getAuthInstance().currentUser.get().getAuthResponse().access_token;
-            const fileData = new Blob([reader.result], { type: file.type });
             const metadata = {
                 'name': file.name,
                 'mimeType': file.type
             };
             const formData = new FormData();
             formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-            formData.append('file', fileData);
+            formData.append('file', new Blob([reader.result], { type: file.type }));
+
+            const token = google.accounts.oauth2.initTokenClient().access_token;
 
             fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
                 method: 'POST',
@@ -95,4 +120,8 @@ photoInput.addEventListener('change', (event) => {
     }
 });
 
-handleClientLoad();
+// Cargar GIS y GAPI
+document.addEventListener('DOMContentLoaded', () => {
+    initGISClient(); // Inicializa GIS
+    handleClientLoad(); // Cargar GAPI
+});
