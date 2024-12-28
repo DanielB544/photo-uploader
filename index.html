@@ -1,35 +1,32 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Album Boda 25 años Daniel & Bertha</title>
+    <title>Album de Recuerdos</title>
     <link rel="stylesheet" href="styles.css">
-    <!-- Google Identity Services -->
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <!-- Google API Client -->
-    <script src="https://apis.google.com/js/api.js" async defer></script>
 </head>
 <body>
     <header>
         <h1>Album Boda 25 años Daniel & Bertha</h1>
     </header>
-    <main class="container">
-        <section class="auth-section">
-            <button id="authorizeButton">ACCESO</button>
-            <button id="signOutButton" style="display: none;">Sign Out</button>
-        </section>
-        <section class="upload-section">
-            <p>Click the button below to capture a photo and upload it:</p>
-            <button id="captureButton" style="display: none;">Capturar</button>
-            <input type="file" accept="image/*" capture="environment" id="photoInput" style="display: none;">
-            <button id="cameraButton" style="display: none;">Tomar Foto</button>
-        </section>
-        <section class="gallery-section">
-            <h2>RECUERDOS</h2>
-            <div id="photoGallery" class="gallery"></div>
-        </section>
+    <main>
+        <button id="authorizeButton" style="display: none;">ACCESO</button>
+        <button id="signOutButton" style="display: none;">Cerrar sesión</button>
+        <button id="captureButton" style="display: none;">Capturar Foto</button>
+        <div id="output">
+            <div class="card">
+                <p>Click the button below to capture a photo and upload it:</p>
+            </div>
+            <div class="card">
+                <h2>RECUERDOS</h2>
+                <p id="message">No se encontraron fotos.</p>
+                <ul id="files"></ul>
+            </div>
+        </div>
     </main>
-    <script src="script.js" defer></script>
+    <script src="https://apis.google.com/js/api.js" async defer onload="gapiLoaded()"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer onload="gisLoaded()"></script>
+    <script src="script.js"></script>
 </body>
 </html>
