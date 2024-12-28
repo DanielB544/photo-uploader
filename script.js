@@ -1,6 +1,6 @@
 // Client ID and API key from the Developer Console
 const CLIENT_ID = 419971965316;
-const API_KEY = AIzaSyCCPZ6-0;
+const API_KEY = 'AIzaSyCCPZ6-0rxy8cHo8j631qGcf641qixq9PI';
 
 // Array of API discovery doc URLs for APIs used by the app
 const DISCOVERY_DOCS = ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"];
