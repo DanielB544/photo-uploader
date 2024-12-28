@@ -1,15 +1,17 @@
+// Configuración de la API de Google
 const CLIENT_ID = '419971965316-51t031aqvk1vhetq7n71ncsl87j4prgc.apps.googleusercontent.com';
 const API_KEY = 'AIzaSyCCPZ6-0rxy8cHo8j631qGcf641qixq9PI';
 const DISCOVERY_DOCS = ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"];
 const SCOPES = "https://www.googleapis.com/auth/drive.file";
 
+// Elementos del DOM
 const authorizeButton = document.getElementById('authorizeButton');
 const signOutButton = document.getElementById('signOutButton');
 const captureButton = document.getElementById('captureButton');
 const photoInput = document.getElementById('photoInput');
 const photoGallery = document.getElementById('photoGallery');
 
-let tokenClient; // Token Client para Google Identity Services
+let tokenClient; // Cliente de token para GIS
 let gapiInited = false; // Control de inicialización de gapi
 let gisInited = false; // Control de inicialización de GIS
 
@@ -81,9 +83,9 @@ function loadDrivePhotos() {
                 photoGallery.appendChild(img);
             });
         } else {
-            photoGallery.innerHTML = '<p>No photos found.</p>';
+            photoGallery.innerHTML = '<p>No se encontraron fotos.</p>';
         }
-    }).catch(error => console.error('Error loading photos:', error));
+    }).catch(error => console.error('Error cargando fotos:', error));
 }
 
 /**
@@ -96,92 +98,34 @@ captureButton.addEventListener('click', () => {
 photoInput.addEventListener('change', (event) => {
     const file = event.target.files[0];
     if (file) {
-        const reader = new FileReader();
-        reader.onload = () => {
-            const metadata = {
-                'name': file.name,
-                'mimeType': file.type
-            };
-            const formData = new FormData();
-            formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-            formData.append('file', new Blob([reader.result], { type: file.type }));
-
-            const token = google.accounts.oauth2.initTokenClient().access_token;
-
-            fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
-                method: 'POST',
-                headers: new Headers({ 'Authorization': 'Bearer ' + token }),
-                body: formData
-            }).then(response => response.json()).then(() => {
-                loadDrivePhotos();
-            }).catch(error => console.error('Error uploading photo:', error));
+        const metadata = {
+            'name': file.name,
+            'mimeType': file.type,
+            'parents': ['1v75e_DffYt6yyYnjPCHUo6tJwc9osuVV'] // ID de la carpeta
         };
-        reader.readAsArrayBuffer(file);
+        const formData = new FormData();
+        formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+        formData.append('file', file);
+
+        fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+            method: 'POST',
+            headers: new Headers({
+                'Authorization': 'Bearer ' + gapi.client.getToken().access_token
+            }),
+            body: formData
+        }).then(response => {
+            if (!response.ok) {
+                throw new Error('Error al subir la foto: ' + response.statusText);
+            }
+            return response.json();
+        }).then(() => {
+            loadDrivePhotos();
+        }).catch(error => console.error('Error subiendo foto:', error));
     }
 });
 
 // Cargar GIS y GAPI
-document.addEventListener('DOMContentLoaded', () => {
+window.onload = () => {
     initGISClient(); // Inicializa GIS
     handleClientLoad(); // Cargar GAPI
-});
-document.getElementById("cameraButton").addEventListener("click", async () => {
-    const cameraInput = document.createElement("input");
-    cameraInput.type = "file";
-    cameraInput.accept = "image/*";
-    cameraInput.capture = "environment";
-    cameraInput.style.display = "none";
-    document.body.appendChild(cameraInput);
-
-    cameraInput.addEventListener("change", async (event) => {
-        const file = event.target.files[0];
-        if (file) {
-            const token = google.accounts.oauth2.getToken();
-            const metadata = {
-                name: file.name,
-                mimeType: file.type,
-                parents: ["1v75e_DffYt6yyYnjPCHUo6tJwc9osuVV"] // ID de la carpeta
-            };
-            const formData = new FormData();
-            formData.append("metadata", new Blob([JSON.stringify(metadata)], { type: "application/json" }));
-            formData.append("file", file);
-
-            try {
-                const response = await fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart", {
-                    method: "POST",
-                    headers: new Headers({ Authorization: `Bearer ${token}` }),
-                    body: formData
-                });
-                const result = await response.json();
-                console.log("Foto subida:", result);
-                loadDrivePhotos(); // Recarga las fotos
-            } catch (error) {
-                console.error("Error subiendo la foto:", error);
-            }
-        }
-    });
-
-    cameraInput.click();
-function loadDrivePhotos() {
-    gapi.client.drive.files.list({
-        'pageSize': 10,
-        'fields': "nextPageToken, files(id, name, webViewLink, thumbnailLink)"
-    }).then(response => {
-        const files = response.result.files.filter(file => file.name.endsWith(".jpg"));
-        photoGallery.innerHTML = '';
-        if (files.length > 0) {
-            files.forEach(file => {
-                const img = document.createElement('img');
-                img.src = file.thumbnailLink;
-                img.alt = file.name;
-                img.onclick = () => window.open(file.webViewLink, '_blank');
-                photoGallery.appendChild(img);
-            });
-        } else {
-            photoGallery.innerHTML = '<p>No se encontraron fotos .jpg.</p>';
-        }
-    }).catch(error => console.error('Error cargando fotos:', error));
-}
-
-});
-
+};
